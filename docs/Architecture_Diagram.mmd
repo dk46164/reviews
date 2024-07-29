@@ -1,0 +1,76 @@
+flowchart TD
+    subgraph Region["US East (N. Virginia) Region"]
+        direction TB
+        subgraph AWS["AWS Services"]
+            style AWS fill:#FF9900,stroke:#232F3E,stroke-width:4px
+            subgraph IAM["IAM"]
+                style IAM fill:#FFFFFF,stroke:#FF9900,stroke-width:2px
+                AdminUser[Admin IAM User]
+                DeployUser[Deploy IAM User]
+                AdminUser -->|Creates| DeployUser
+            end
+            CF["CloudFormation"]
+            style CF fill:#FFFFFF,stroke:#FF9900,stroke-width:2px
+            DeployUser -->|Uses| CF
+            subgraph S3["Amazon S3 (Data Storage)"]
+                direction TB
+                style S3 fill:#FFFFFF,stroke:#FF9900,stroke-width:2px
+                B[Bucket: Main Storage]
+                R[review/]
+                S[staging/]
+                O[output/]
+                A[aggregations/]
+                B --> R & S & O & A
+            end
+            subgraph EKSCluster["EKS Cluster"]
+                style EKSCluster fill:#FFFFFF,stroke:#FF9900,stroke-width:2px
+                EKS["EKS (3 Workers)"]
+                DaskDashboard["Dask Dashboard Service"]
+            end
+            ECR["Elastic Container Registry"]
+            style ECR fill:#FFFFFF,stroke:#FF9900,stroke-width:2px
+            EKS -->|Exposes| DaskDashboard
+            ECR -->|Serves images| EKS
+            subgraph CW["CloudWatch"]
+                style CW fill:#FFFFFF,stroke:#FF9900,stroke-width:2px
+                Logs[Logs]
+                Metrics[Metrics]
+                Alarms[Alarms]
+            end
+            CF -->|Creates| S3 & EKSCluster & CW & ECR
+            EKS <--> |Data flow| S3
+            EKS --> |Logs & metrics| CW
+        end
+        
+        subgraph SF["Snowflake (Data Warehousing)"]
+            style SF fill:#FFFFFF,stroke:#29B5E8,stroke-width:2px
+            ST[Staging Table]
+            RT[Reporting Table]
+            ST --> |Aggregation| RT
+        end
+        
+        S3 --> |Copy data| SF
+        EKS --> |Write partitions| SF
+        
+        EndUser((End User))
+        EndUser -->|Logs in and monitors| DaskDashboard
+        
+        subgraph Legend["Legend"]
+            direction TB
+            style Legend fill:#F0F0F0,stroke:#333,stroke-width:2px
+            L1[EKS: Main cost consideration]
+            style L1 fill:#ffcccc,stroke:#ff0000,stroke-width:2px,color:#ff0000
+        end
+    end
+    
+    subgraph ExternalDeployment["External Deployment"]
+        direction TB
+        style ExternalDeployment fill:#E6F3FF,stroke:#333,stroke-width:2px
+        Git[("Git Repository")]
+        CI[("CI/CD Pipeline")]
+        Dev[("Developer")]
+        Dev -->|Commits changes| Git
+        Git -->|Triggers| CI
+        CI -->|Build, Test, Push| ECR
+        CI -->|Update| EKS
+    end

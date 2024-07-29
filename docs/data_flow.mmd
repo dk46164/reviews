@@ -1,0 +1,53 @@
+graph TD
+    subgraph "Main Process"
+        A[Step 1: Dask Cluster Init/Connect]
+        B[Step 2: Identify JSON Files to Parse]
+        C[Step 3: Process JSON Files]
+        D[Step 4: Text Processing]
+        E[Step 5: Submit and Execute]
+    end
+    
+    subgraph "Dask Cluster"
+        S[Scheduler]
+        W1[Worker 1]
+        W2[Worker 2]
+    end
+    
+    Client[Dask Client]
+    A --> Client
+    Client --> S
+    S --> W1
+    S --> W2
+    A --> B
+    B --> C
+    
+    subgraph "Step 3: Process JSON Files"
+        C1[Step 3.1: Submit Parse JSON Commands]
+        C2[Step 3.2: Validate Schema]
+    end
+    
+    C --> C1
+    C1 --> C2
+    C2 --> D
+    
+    subgraph "Step 4: Text Processing"
+        D1[Step 4.1: Text Masking]
+        D2[Step 4.2: Aggregate Reviews]
+    end
+    
+    D --> D1
+    D1 --> D2
+    D2 --> E
+    
+    subgraph "Step 5: Submit and Execute"
+        E1[Submit Entire Task Graph to Dask Cluster]
+        E2[Return Dask Future Object]
+        E3[Write Processed Reviews and Aggregation]
+        E4[as Multipart to Filesystem]
+    end
+    
+    E --> E1
+    E1 <--> Client
+    E1 --> E2
+    E2 --> E3
+    E3 --> E4
