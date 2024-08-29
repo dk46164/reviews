@@ -53,29 +53,27 @@ docker logs -f <container_id>
 ## Docs has two Pictures in PNG and SVG format, please open them  in browser
 
 
+```mermaid
 gitGraph
     commit
     branch develop
+    commit
+    branch feature1
+    commit
+    commit
     checkout develop
+    merge feature1
+    branch feature2
     commit
     commit
+    checkout develop
+    merge feature2
     checkout main
     merge develop
-    commit
     branch hotfix
-    checkout hotfix
     commit
     checkout main
     merge hotfix
     checkout develop
     merge hotfix
-    branch feature
-    checkout feature
-    commit
-    commit
-    checkout develop
-    merge feature
-    commit
-    checkout main
-    merge develop
 
